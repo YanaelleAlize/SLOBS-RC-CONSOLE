@@ -11,7 +11,7 @@ namespace SLOBSRC
 
 #if DEBUG
             // Debugging arguments
-            args = new string[] { "debug" };
+            //args = new string[] { "debug" };
 #endif
             // Cancel if no function is given
             if (args.Length == 0)
@@ -564,6 +564,51 @@ namespace SLOBSRC
 
                 #endregion
 
+                #region Refresh source
+
+                /* refresh_source source_name */
+                case "refresh_source":
+                    if (args.Length >= 2)
+                    {
+                        // Refresh source
+                        result = Control.RefreshSource(connection, args[1], 0);
+                        if (!result.Success)
+                        {
+                            Console.Write($"Error: {result.Message} for function refresh_source.");
+                        }
+                    }
+                    else
+                    {
+                        Console.Write("Error: Insufficient arguments supplied for function refresh_source.");
+                    }
+                    break;
+
+                /* refresh_source source_name delay */
+                case "trefresh_source":
+                    if (args.Length >= 3)
+                    {
+                        // Set delay
+                        if (!int.TryParse(args[2], out int delay))
+                        {
+                            Console.Write("Warning: Delay for function tvisibility_source_scene is not valid, defaulting to 5 seconds.");
+                            delay = 5;
+                        }
+
+                        // Refresh source
+                        result = Control.RefreshSource(connection, args[1], delay);
+                        if (!result.Success)
+                        {
+                            Console.Write($"Error: {result.Message} for function trefresh_source.");
+                        }
+                    }
+                    else
+                    {
+                        Console.Write("Error: Insufficient arguments supplied for function trefresh_source.");
+                    }
+                    break;
+
+                #endregion
+
                 #region Debug
 
 #if DEBUG
@@ -581,6 +626,7 @@ namespace SLOBSRC
 
             // Close connection to SLOBS
             connection.Close();
+            //Console.ReadLine();
         }
     }
 }

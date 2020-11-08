@@ -749,5 +749,57 @@ namespace SLOBSRC
         }
 
         #endregion
+
+        #region Sources
+
+        /// <summary>
+        /// Refresh source given by name
+        /// </summary>
+        /// <param name="con">IConnection connection to Streamlabs OBS.</param>
+        /// <param name="source">Name of the source to refresh.</param>
+        /// <param name="delay">Delay in seconds before refreshing.</param>
+        /// <returns>Success</returns>
+        internal static ControlStatus RefreshSource(IConnection con, string source_name, int delay = 0)
+        {
+            string sceneResourceId = null;
+            // Get current Active scene resourceId
+            sceneResourceId = new Request<SceneAPI>("activeScene", "ScenesService").GetResponse(con).Result.ResourceId;
+
+            // Get all sceneItems from targeted scene
+            var items = new Request<List<SceneItemAPI>>("getItems", sceneResourceId).GetResponse(con);
+
+            // Find targeted item by name
+            // In items list instead using getSourcesByName and matching source id's
+            foreach (SceneItemAPI i in items.Result)
+            {
+                // Found targeted source in current scene
+                if (i.Name == source_name)
+                {
+                    var sourceResourceId_req = new Request<SourceAPI>("getSource", "SourcesService", new object[] { i.SourceId });
+                    var sourceResourceId_asw = sourceResourceId_req.GetResponse(con);
+                    string sourceResourceId = sourceResourceId_asw.Result.ResourceId;
+                    // Refresh item
+                    Thread.Sleep(delay * 1000);
+                    var req = new Request<object>("refresh", sourceResourceId);
+                    var asw = req.GetResponse(con);
+
+                    // Return success
+                    return new ControlStatus
+                    {
+                        Success = true
+                    };
+                }
+            }
+
+            SendNotification(con, $"Source '{source_name}' not found in current scene.");
+            return new ControlStatus
+            {
+                Success = false,
+                Message = $"Source '{source_name}' not found in current scene"
+            };
+        }
+
+        #endregion
+
     }
 }
